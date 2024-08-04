@@ -16,32 +16,57 @@ public class BetterHPConfig {
     public static class Client {
         public final ForgeConfigSpec.BooleanValue showVanillaHearts;
         public final ForgeConfigSpec.BooleanValue showVanillaArmor;
+        public final ForgeConfigSpec.BooleanValue showVanillaHunger; // Added this line
+        public final ForgeConfigSpec.BooleanValue showNumericHunger;
         public final ForgeConfigSpec.BooleanValue showHPText;
+        public final ForgeConfigSpec.BooleanValue showHungerText; // New config for "Hunger" text
         public final ForgeConfigSpec.IntValue healthDisplayX;
         public final ForgeConfigSpec.IntValue healthDisplayY;
+        public final ForgeConfigSpec.IntValue hungerDisplayX; // Added this line
+        public final ForgeConfigSpec.IntValue hungerDisplayY; // Added this line
 
         public Client(ForgeConfigSpec.Builder builder) {
             builder.push("Display Settings");
 
             showVanillaHearts = builder
-                    .comment("Show Vanilla Hearts")
-                    .define("showVanillaHearts", false);
+                    .comment("Show vanilla hearts")
+                    .define("showVanillaHearts", true);
 
             showVanillaArmor = builder
-                    .comment("Show Vanilla Armor")
+                    .comment("Show vanilla armor bar")
                     .define("showVanillaArmor", false);
 
+            showVanillaHunger = builder
+                    .comment("Show vanilla hunger bar")
+                    .define("showVanillaHunger", true);
+
+            showNumericHunger = builder
+                    .comment("Show numeric hunger instead of vanilla hunger bar")
+                    .define("showNumericHunger", true);
+
             showHPText = builder
-                    .comment("Show HP Text")
+                    .comment("Show 'HP' text with health numbers")
                     .define("showHPText", true);
 
+            showHungerText = builder
+                    .comment("Show 'Hunger' text with hunger numbers")
+                    .define("showHungerText", true);
+
             healthDisplayX = builder
-                    .comment("Health Display X Position")
-                    .defineInRange("healthDisplayX", 140, 0, Integer.MAX_VALUE);
+                    .comment("Horizontal position of the health display")
+                    .defineInRange("healthDisplayX", -48, -1000, 1000);
 
             healthDisplayY = builder
-                    .comment("Health Display Y Position")
-                    .defineInRange("healthDisplayY", 43, 0, Integer.MAX_VALUE);
+                    .comment("Vertical position of the health display")
+                    .defineInRange("healthDisplayY", 43, 0, 1000);
+
+            hungerDisplayX = builder
+                    .comment("Horizontal position of the hunger display")
+                    .defineInRange("hungerDisplayX", 66, -1000, 1000);
+
+            hungerDisplayY = builder
+                    .comment("Vertical position of the hunger display")
+                    .defineInRange("hungerDisplayY", 43, 0, 1000);
 
             builder.pop();
         }

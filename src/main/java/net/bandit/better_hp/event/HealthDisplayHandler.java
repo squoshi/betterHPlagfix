@@ -18,86 +18,106 @@ public class HealthDisplayHandler {
 
     @SubscribeEvent
     public static void onRenderGui(RenderGuiOverlayEvent.Pre event) {
-        // Check the configuration to see if vanilla hearts should be shown
         boolean showVanillaHearts = BetterHPConfig.CLIENT.showVanillaHearts.get();
-        boolean showVanillaArmor = BetterHPConfig.CLIENT.showVanillaArmor.get(); // Get armor config
+        boolean showVanillaArmor = BetterHPConfig.CLIENT.showVanillaArmor.get();
+        boolean showVanillaHunger = BetterHPConfig.CLIENT.showVanillaHunger.get();
 
-        // Cancel the default health bar rendering if not showing vanilla hearts
+
         if (!showVanillaHearts && event.getOverlay() == VanillaGuiOverlay.PLAYER_HEALTH.type()) {
             event.setCanceled(true);
         }
 
-        // Cancel the default armor bar rendering if not showing vanilla armor
         if (!showVanillaArmor && event.getOverlay() == VanillaGuiOverlay.ARMOR_LEVEL.type()) {
             event.setCanceled(true);
         }
+        if (!showVanillaHunger && event.getOverlay() == VanillaGuiOverlay.FOOD_LEVEL.type()) {
+            event.setCanceled(true);
+        }
     }
-
     @SubscribeEvent
     public static void onRenderGui(RenderGuiOverlayEvent.Post event) {
-        // Retrieve the configuration settings
-        boolean showVanillaArmor = BetterHPConfig.CLIENT.showVanillaArmor.get(); // Ensure this is checked
-        boolean showHPText = BetterHPConfig.CLIENT.showHPText.get();
-
         Minecraft minecraft = Minecraft.getInstance();
         Player player = minecraft.player;
 
-        // Ensure the player is not null
+
         if (player == null) {
             return;
         }
 
-        // Use GuiGraphics from the event to render text
+        boolean showVanillaArmor = BetterHPConfig.CLIENT.showVanillaArmor.get();
+        boolean showNumericHunger = BetterHPConfig.CLIENT.showNumericHunger.get();
+        boolean showHPText = BetterHPConfig.CLIENT.showHPText.get();
+        boolean showHungerText = BetterHPConfig.CLIENT.showHungerText.get();
+
         GuiGraphics guiGraphics = event.getGuiGraphics();
 
-        // Calculate player's health, max health, absorption amount, and armor value
+
         int health = (int) player.getHealth();
         int maxHealth = (int) player.getMaxHealth();
         int absorption = (int) player.getAbsorptionAmount();
         int armorValue = player.getArmorValue();
+        int hunger = player.getFoodData().getFoodLevel();
+        int maxHunger = 20;
 
-        // Get the screen dimensions
+
+        if (player.getFoodData().getSaturationLevel() > 20) {
+            maxHunger = (int) player.getFoodData().getSaturationLevel();
+        }
+
+
         int screenWidth = minecraft.getWindow().getGuiScaledWidth();
         int screenHeight = minecraft.getWindow().getGuiScaledHeight();
 
-        // Calculate the position based on configuration and screen size
-        int healthPosX = BetterHPConfig.CLIENT.healthDisplayX.get();
-        int healthPosY = BetterHPConfig.CLIENT.healthDisplayY.get();
 
-        // Adjust for anchoring to the bottom-center
-        int centeredX = (screenWidth / 2) - (healthPosX / 2);
-        int bottomY = screenHeight - healthPosY;
+        int healthDisplayX = BetterHPConfig.CLIENT.healthDisplayX.get();
+        int healthDisplayY = BetterHPConfig.CLIENT.healthDisplayY.get();
+        int centeredHealthX = (screenWidth / 2) + healthDisplayX;
+        int bottomHealthY = screenHeight - healthDisplayY;
 
-        int foodBarY = bottomY - 3;
-        int yArmor = bottomY - 15; // Position for armor
-        int yHealth = bottomY; // Position for health
+        // Calculate the position for hunger display
+        int hungerDisplayX = BetterHPConfig.CLIENT.hungerDisplayX.get();
+        int hungerDisplayY = BetterHPConfig.CLIENT.hungerDisplayY.get();
+        int centeredHungerX = (screenWidth / 2) + hungerDisplayX;
+        int bottomHungerY = screenHeight - hungerDisplayY;
 
-        // Prepare the health and armor text
+        int yArmor = bottomHealthY - 10; // Position for armor
+        int yHealth = bottomHealthY; // Position for health
+        int yHunger = bottomHungerY; // Position for hunger
+
+
         String healthText = health + "/" + maxHealth + (showHPText ? " HP" : ""); // Conditionally append "HP"
         String absorptionText = "+" + absorption; // Text for absorption hearts
         String armorText = armorValue + " Armor"; // Text for armor value
+        String hungerText = hunger + "/" + maxHunger + (showHungerText ? " Hunger" : ""); // Conditionally append "Hunger"
         Font font = minecraft.font;
         int healthTextWidth = font.width(healthText);
         int absorptionWidth = font.width(absorptionText);
         int armorTextWidth = font.width(armorText);
+        int hungerTextWidth = font.width(hungerText);
 
-        // Define the colors
-        int textColor = determineHealthColor(player); // Get health color based on status effects
+
+        int textColor = determineHealthColor(player);
         int absorptionColor = 0xFFFF00; // Yellow color for absorption
         int armorColor = 0xAAAAAA; // Gray color for armor text
+        int hungerColor = 0xFF7518; // Pumpkin color
         int outlineColor = 0x000000; // Black color for outline
 
-        // Render the armor value text with a black outline
+
         if (!showVanillaArmor) {
-            drawOutlinedText(guiGraphics, font, armorText, centeredX, yArmor, armorColor, outlineColor);
+            drawOutlinedText(guiGraphics, font, armorText, centeredHealthX - armorTextWidth / 2, yArmor, armorColor, outlineColor);
         }
 
         // Render the health text with a black outline
-        drawOutlinedText(guiGraphics, font, healthText, centeredX, yHealth, textColor, outlineColor);
+        drawOutlinedText(guiGraphics, font, healthText, centeredHealthX - healthTextWidth / 2, yHealth, textColor, outlineColor);
 
         // Render absorption hearts text if any, to the right of the health text
         if (absorption > 0) {
-            drawOutlinedText(guiGraphics, font, absorptionText, centeredX + healthTextWidth + 5, yHealth, absorptionColor, outlineColor);
+            drawOutlinedText(guiGraphics, font, absorptionText, centeredHealthX + healthTextWidth / 2 + 5, yHealth, absorptionColor, outlineColor);
+        }
+
+        // Render the hunger text with a black outline
+        if (showNumericHunger) {
+            drawOutlinedText(guiGraphics, font, hungerText, centeredHungerX - hungerTextWidth / 2, yHunger, hungerColor, outlineColor);
         }
     }
 
