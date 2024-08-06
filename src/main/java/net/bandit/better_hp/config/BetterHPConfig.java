@@ -16,21 +16,26 @@ public class BetterHPConfig {
     public static class Client {
         public final ForgeConfigSpec.BooleanValue showVanillaHearts;
         public final ForgeConfigSpec.BooleanValue showVanillaArmor;
-        public final ForgeConfigSpec.BooleanValue showVanillaHunger; // Added this line
+        public final ForgeConfigSpec.BooleanValue showVanillaHunger;
+        public final ForgeConfigSpec.BooleanValue showVanillaOxygen; // New config for vanilla oxygen bubbles
         public final ForgeConfigSpec.BooleanValue showNumericHunger;
-        public final ForgeConfigSpec.BooleanValue showHPText;
-        public final ForgeConfigSpec.BooleanValue showHungerText; // New config for "Hunger" text
+        public final ForgeConfigSpec.BooleanValue showOxygenIcon; // New config for custom oxygen icon
+        public final ForgeConfigSpec.BooleanValue showNumericOxygen; // New config for numeric oxygen display
         public final ForgeConfigSpec.IntValue healthDisplayX;
         public final ForgeConfigSpec.IntValue healthDisplayY;
-        public final ForgeConfigSpec.IntValue hungerDisplayX; // Added this line
-        public final ForgeConfigSpec.IntValue hungerDisplayY; // Added this line
+        public final ForgeConfigSpec.IntValue armorDisplayX;
+        public final ForgeConfigSpec.IntValue armorDisplayY;
+        public final ForgeConfigSpec.IntValue hungerDisplayX;
+        public final ForgeConfigSpec.IntValue hungerDisplayY;
+        public final ForgeConfigSpec.IntValue oxygenDisplayX; // New config for oxygen display position
+        public final ForgeConfigSpec.IntValue oxygenDisplayY; // New config for oxygen display position
 
         public Client(ForgeConfigSpec.Builder builder) {
             builder.push("Display Settings");
 
             showVanillaHearts = builder
                     .comment("Show vanilla hearts")
-                    .define("showVanillaHearts", true);
+                    .define("showVanillaHearts", false);
 
             showVanillaArmor = builder
                     .comment("Show vanilla armor bar")
@@ -38,35 +43,55 @@ public class BetterHPConfig {
 
             showVanillaHunger = builder
                     .comment("Show vanilla hunger bar")
-                    .define("showVanillaHunger", true);
+                    .define("showVanillaHunger", false);
+
+            showVanillaOxygen = builder
+                    .comment("Show vanilla oxygen bubbles")
+                    .define("showVanillaOxygen", false); // Default to false for custom oxygen
 
             showNumericHunger = builder
                     .comment("Show numeric hunger instead of vanilla hunger bar")
                     .define("showNumericHunger", true);
 
-            showHPText = builder
-                    .comment("Show 'HP' text with health numbers")
-                    .define("showHPText", true);
+            showOxygenIcon = builder
+                    .comment("Show custom oxygen icon when underwater")
+                    .define("showOxygenIcon", true);
 
-            showHungerText = builder
-                    .comment("Show 'Hunger' text with hunger numbers")
-                    .define("showHungerText", true);
+            showNumericOxygen = builder
+                    .comment("Show numeric oxygen value when underwater")
+                    .define("showNumericOxygen", true);
 
             healthDisplayX = builder
-                    .comment("Horizontal position of the health display")
+                    .comment("Horizontal position of the health icon display")
                     .defineInRange("healthDisplayX", -48, -1000, 1000);
 
             healthDisplayY = builder
-                    .comment("Vertical position of the health display")
+                    .comment("Vertical position of the health icon display")
                     .defineInRange("healthDisplayY", 43, 0, 1000);
 
+            armorDisplayX = builder
+                    .comment("Horizontal position of the armor icon display")
+                    .defineInRange("armorDisplayX", 16, -1000, 1000);
+
+            armorDisplayY = builder
+                    .comment("Vertical position of the armor icon display")
+                    .defineInRange("armorDisplayY", 49, 0, 1000);
+
             hungerDisplayX = builder
-                    .comment("Horizontal position of the hunger display")
+                    .comment("Horizontal position of the hunger icon display")
                     .defineInRange("hungerDisplayX", 66, -1000, 1000);
 
             hungerDisplayY = builder
-                    .comment("Vertical position of the hunger display")
+                    .comment("Vertical position of the hunger icon display")
                     .defineInRange("hungerDisplayY", 43, 0, 1000);
+
+            oxygenDisplayX = builder
+                    .comment("Horizontal position of the oxygen icon display")
+                    .defineInRange("oxygenDisplayX", 66, -1000, 1000); // Placed above hunger
+
+            oxygenDisplayY = builder
+                    .comment("Vertical position of the oxygen icon display")
+                    .defineInRange("oxygenDisplayY", 63, 0, 1000); // Adjusted position
 
             builder.pop();
         }

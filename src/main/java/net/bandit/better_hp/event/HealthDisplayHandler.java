@@ -4,24 +4,32 @@ import net.bandit.better_hp.config.BetterHPConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.GameType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderGuiOverlayEvent;
 import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import com.mojang.blaze3d.systems.RenderSystem;
 
 @Mod.EventBusSubscriber(modid = "better_hp", value = Dist.CLIENT)
 public class HealthDisplayHandler {
+
+    private static final ResourceLocation HEALTH_ICON = new ResourceLocation("better_hp", "textures/gui/health_icon.png");
+    private static final ResourceLocation HUNGER_ICON = new ResourceLocation("better_hp", "textures/gui/hunger_icon.png");
+    private static final ResourceLocation ARMOR_ICON = new ResourceLocation("better_hp", "textures/gui/armor_icon.png");
+    private static final ResourceLocation BREATHE_ICON = new ResourceLocation("better_hp", "textures/gui/breathe_icon.png"); // New icon
 
     @SubscribeEvent
     public static void onRenderGui(RenderGuiOverlayEvent.Pre event) {
         boolean showVanillaHearts = BetterHPConfig.CLIENT.showVanillaHearts.get();
         boolean showVanillaArmor = BetterHPConfig.CLIENT.showVanillaArmor.get();
         boolean showVanillaHunger = BetterHPConfig.CLIENT.showVanillaHunger.get();
-
+        boolean showVanillaOxygen = BetterHPConfig.CLIENT.showVanillaOxygen.get(); // New config
 
         if (!showVanillaHearts && event.getOverlay() == VanillaGuiOverlay.PLAYER_HEALTH.type()) {
             event.setCanceled(true);
@@ -30,27 +38,32 @@ public class HealthDisplayHandler {
         if (!showVanillaArmor && event.getOverlay() == VanillaGuiOverlay.ARMOR_LEVEL.type()) {
             event.setCanceled(true);
         }
+
         if (!showVanillaHunger && event.getOverlay() == VanillaGuiOverlay.FOOD_LEVEL.type()) {
             event.setCanceled(true);
         }
+
+        if (!showVanillaOxygen && event.getOverlay() == VanillaGuiOverlay.AIR_LEVEL.type()) { // Disable vanilla bubbles
+            event.setCanceled(true);
+        }
     }
+
     @SubscribeEvent
     public static void onRenderGui(RenderGuiOverlayEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
         Player player = minecraft.player;
 
-
-        if (player == null) {
+        if (player == null || minecraft.gameMode.getPlayerMode() == GameType.CREATIVE) {
+            // Skip rendering if the player is null or in Creative Mode
             return;
         }
 
         boolean showVanillaArmor = BetterHPConfig.CLIENT.showVanillaArmor.get();
         boolean showNumericHunger = BetterHPConfig.CLIENT.showNumericHunger.get();
-        boolean showHPText = BetterHPConfig.CLIENT.showHPText.get();
-        boolean showHungerText = BetterHPConfig.CLIENT.showHungerText.get();
+        boolean showBreatheIcon = BetterHPConfig.CLIENT.showOxygenIcon.get(); // New config
+        boolean showNumericOxygen = BetterHPConfig.CLIENT.showNumericOxygen.get(); // New config
 
         GuiGraphics guiGraphics = event.getGuiGraphics();
-
 
         int health = (int) player.getHealth();
         int maxHealth = (int) player.getMaxHealth();
@@ -58,78 +71,91 @@ public class HealthDisplayHandler {
         int armorValue = player.getArmorValue();
         int hunger = player.getFoodData().getFoodLevel();
         int maxHunger = 20;
-
+        int air = player.getAirSupply();
+        int maxAir = player.getMaxAirSupply();
 
         if (player.getFoodData().getSaturationLevel() > 20) {
             maxHunger = (int) player.getFoodData().getSaturationLevel();
         }
 
-
         int screenWidth = minecraft.getWindow().getGuiScaledWidth();
         int screenHeight = minecraft.getWindow().getGuiScaledHeight();
 
-
         int healthDisplayX = BetterHPConfig.CLIENT.healthDisplayX.get();
         int healthDisplayY = BetterHPConfig.CLIENT.healthDisplayY.get();
+        int armorDisplayX = BetterHPConfig.CLIENT.armorDisplayX.get();
+        int armorDisplayY = BetterHPConfig.CLIENT.armorDisplayY.get();
+        int hungerDisplayX = BetterHPConfig.CLIENT.hungerDisplayX.get();
+        int hungerDisplayY = BetterHPConfig.CLIENT.hungerDisplayY.get();
+        int breatheDisplayX = BetterHPConfig.CLIENT.oxygenDisplayX.get(); // New config
+        int breatheDisplayY = BetterHPConfig.CLIENT.oxygenDisplayY.get(); // New config
+
         int centeredHealthX = (screenWidth / 2) + healthDisplayX;
         int bottomHealthY = screenHeight - healthDisplayY;
 
-        // Calculate the position for hunger display
-        int hungerDisplayX = BetterHPConfig.CLIENT.hungerDisplayX.get();
-        int hungerDisplayY = BetterHPConfig.CLIENT.hungerDisplayY.get();
+        int centeredArmorX = (screenWidth / 2) + armorDisplayX;
+        int bottomArmorY = screenHeight - armorDisplayY;
+
         int centeredHungerX = (screenWidth / 2) + hungerDisplayX;
         int bottomHungerY = screenHeight - hungerDisplayY;
 
-        int yArmor = bottomHealthY - 10; // Position for armor
-        int yHealth = bottomHealthY; // Position for health
-        int yHunger = bottomHungerY; // Position for hunger
+        int centeredBreatheX = (screenWidth / 2) + breatheDisplayX; // New oxygen positioning
+        int bottomBreatheY = screenHeight - breatheDisplayY; // New oxygen positioning
 
+        // Define numeric display texts
+        String healthText = health + "/" + maxHealth;
+        String absorptionText = "+" + absorption;
+        String armorText = armorValue + "";
+        String hungerText = hunger + "/" + maxHunger;
+        String breatheText = (air / 20) + "/" + (maxAir / 20); // New oxygen text
 
-        String healthText = health + "/" + maxHealth + (showHPText ? " HP" : ""); // Conditionally append "HP"
-        String absorptionText = "+" + absorption; // Text for absorption hearts
-        String armorText = armorValue + " Armor"; // Text for armor value
-        String hungerText = hunger + "/" + maxHunger + (showHungerText ? " Hunger" : ""); // Conditionally append "Hunger"
         Font font = minecraft.font;
         int healthTextWidth = font.width(healthText);
         int absorptionWidth = font.width(absorptionText);
         int armorTextWidth = font.width(armorText);
         int hungerTextWidth = font.width(hungerText);
-
+        int breatheTextWidth = font.width(breatheText); // New oxygen text width
 
         int textColor = determineHealthColor(player);
         int absorptionColor = 0xFFFF00; // Yellow color for absorption
         int armorColor = 0xAAAAAA; // Gray color for armor text
         int hungerColor = 0xFF7518; // Pumpkin color
+        int breatheColor = 0x00BFFF; // DeepSkyBlue color for oxygen
         int outlineColor = 0x000000; // Black color for outline
 
-
+        // Draw the icons and numeric values
         if (!showVanillaArmor) {
-            drawOutlinedText(guiGraphics, font, armorText, centeredHealthX - armorTextWidth / 2, yArmor, armorColor, outlineColor);
+            drawIcon(guiGraphics, ARMOR_ICON, centeredArmorX - armorTextWidth / 2 - 18, bottomArmorY - 4, 16, 16);
+            drawOutlinedText(guiGraphics, font, armorText, centeredArmorX - armorTextWidth / 2, bottomArmorY, armorColor, outlineColor);
         }
 
-        // Render the health text with a black outline
-        drawOutlinedText(guiGraphics, font, healthText, centeredHealthX - healthTextWidth / 2, yHealth, textColor, outlineColor);
+        drawIcon(guiGraphics, HEALTH_ICON, centeredHealthX - healthTextWidth / 2 - 18, bottomHealthY - 4, 16, 16);
+        drawOutlinedText(guiGraphics, font, healthText, centeredHealthX - healthTextWidth / 2, bottomHealthY, textColor, outlineColor);
 
-        // Render absorption hearts text if any, to the right of the health text
         if (absorption > 0) {
-            drawOutlinedText(guiGraphics, font, absorptionText, centeredHealthX + healthTextWidth / 2 + 5, yHealth, absorptionColor, outlineColor);
+            drawOutlinedText(guiGraphics, font, absorptionText, centeredHealthX + healthTextWidth / 2 + 5, bottomHealthY, absorptionColor, outlineColor);
         }
 
-        // Render the hunger text with a black outline
         if (showNumericHunger) {
-            drawOutlinedText(guiGraphics, font, hungerText, centeredHungerX - hungerTextWidth / 2, yHunger, hungerColor, outlineColor);
+            drawIcon(guiGraphics, HUNGER_ICON, centeredHungerX - hungerTextWidth / 2 - 18, bottomHungerY - 4, 16, 16);
+            drawOutlinedText(guiGraphics, font, hungerText, centeredHungerX - hungerTextWidth / 2, bottomHungerY, hungerColor, outlineColor);
+        }
+
+        // Draw the breathe icon and numeric oxygen value if configured
+        if (showBreatheIcon && player.isUnderWater()) {
+            drawIcon(guiGraphics, BREATHE_ICON, centeredBreatheX - breatheTextWidth / 2 - 18, bottomBreatheY - 4, 16, 16);
+            if (showNumericOxygen) {
+                drawOutlinedText(guiGraphics, font, breatheText, centeredBreatheX - breatheTextWidth / 2, bottomBreatheY, breatheColor, outlineColor);
+            }
         }
     }
 
-    // Method to determine health color based on player's active status effects
     private static int determineHealthColor(Player player) {
-        // Check if the player is affected by the Wither effect
         MobEffectInstance witherEffect = player.getEffect(MobEffects.WITHER);
         if (witherEffect != null) {
             return 0x800080; // Dark Purple color for Wither effect
         }
 
-        // Check if the player is affected by the Poison effect
         MobEffectInstance poisonEffect = player.getEffect(MobEffects.POISON);
         if (poisonEffect != null) {
             return 0x00FF00; // Bright Green color for Poison effect
@@ -137,6 +163,14 @@ public class HealthDisplayHandler {
 
         // Default color (red) when no specific status effects
         return 0xFF0000;
+    }
+
+    private static void drawIcon(GuiGraphics guiGraphics, ResourceLocation icon, int x, int y, int width, int height) {
+        // Set the texture to the provided icon ResourceLocation
+        RenderSystem.setShaderTexture(0, icon);
+
+        // Use the correct blit method with ResourceLocation
+        guiGraphics.blit(icon, x, y, 0, 0, width, height, width, height);
     }
 
     private static void drawOutlinedText(GuiGraphics guiGraphics, Font font, String text, int x, int y, int color, int outlineColor) {
