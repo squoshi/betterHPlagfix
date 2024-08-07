@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "betterhp_fabric",
+  "version": "${version}",
+  "name": "betterHP fabric",
+  "description": "BetterHP Mod for Fabric",
+  "authors": ["Bandit-Bytes"],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "net.bandit.betterhp_fabric.client.betterhp_fabricClient"
+    ],
+    "main": [
+      "net.bandit.betterhp_fabric.BetterHPFabric"
+    ]
+  },
+  "mixins": [
+    "betterhp_fabric.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.15.11",
+    "fabric": "*",
+    "minecraft": "~1.20.1"
+  }
+}
