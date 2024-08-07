@@ -22,14 +22,14 @@ public class HealthDisplayHandler {
     private static final ResourceLocation HEALTH_ICON = new ResourceLocation("better_hp", "textures/gui/health_icon.png");
     private static final ResourceLocation HUNGER_ICON = new ResourceLocation("better_hp", "textures/gui/hunger_icon.png");
     private static final ResourceLocation ARMOR_ICON = new ResourceLocation("better_hp", "textures/gui/armor_icon.png");
-    private static final ResourceLocation BREATHE_ICON = new ResourceLocation("better_hp", "textures/gui/breathe_icon.png"); // New icon
+    private static final ResourceLocation BREATHE_ICON = new ResourceLocation("better_hp", "textures/gui/breathe_icon.png");
 
     @SubscribeEvent
     public static void onRenderGui(RenderGuiOverlayEvent.Pre event) {
         boolean showVanillaHearts = BetterHPConfig.CLIENT.showVanillaHearts.get();
         boolean showVanillaArmor = BetterHPConfig.CLIENT.showVanillaArmor.get();
         boolean showVanillaHunger = BetterHPConfig.CLIENT.showVanillaHunger.get();
-        boolean showVanillaOxygen = BetterHPConfig.CLIENT.showVanillaOxygen.get(); // New config
+        boolean showVanillaOxygen = BetterHPConfig.CLIENT.showVanillaOxygen.get();
 
         if (!showVanillaHearts && event.getOverlay() == VanillaGuiOverlay.PLAYER_HEALTH.type()) {
             event.setCanceled(true);
@@ -43,7 +43,7 @@ public class HealthDisplayHandler {
             event.setCanceled(true);
         }
 
-        if (!showVanillaOxygen && event.getOverlay() == VanillaGuiOverlay.AIR_LEVEL.type()) { // Disable vanilla bubbles
+        if (!showVanillaOxygen && event.getOverlay() == VanillaGuiOverlay.AIR_LEVEL.type()) {
             event.setCanceled(true);
         }
     }
@@ -60,8 +60,8 @@ public class HealthDisplayHandler {
 
         boolean showVanillaArmor = BetterHPConfig.CLIENT.showVanillaArmor.get();
         boolean showNumericHunger = BetterHPConfig.CLIENT.showNumericHunger.get();
-        boolean showBreatheIcon = BetterHPConfig.CLIENT.showOxygenIcon.get(); // New config
-        boolean showNumericOxygen = BetterHPConfig.CLIENT.showNumericOxygen.get(); // New config
+        boolean showBreatheIcon = BetterHPConfig.CLIENT.showOxygenIcon.get();
+        boolean showNumericOxygen = BetterHPConfig.CLIENT.showNumericOxygen.get();
 
         GuiGraphics guiGraphics = event.getGuiGraphics();
 
@@ -70,13 +70,9 @@ public class HealthDisplayHandler {
         int absorption = (int) player.getAbsorptionAmount();
         int armorValue = player.getArmorValue();
         int hunger = player.getFoodData().getFoodLevel();
-        int maxHunger = 20;
+        int saturation = (int) player.getFoodData().getSaturationLevel(); // Get saturation level
         int air = player.getAirSupply();
         int maxAir = player.getMaxAirSupply();
-
-        if (player.getFoodData().getSaturationLevel() > 20) {
-            maxHunger = (int) player.getFoodData().getSaturationLevel();
-        }
 
         int screenWidth = minecraft.getWindow().getGuiScaledWidth();
         int screenHeight = minecraft.getWindow().getGuiScaledHeight();
@@ -87,8 +83,8 @@ public class HealthDisplayHandler {
         int armorDisplayY = BetterHPConfig.CLIENT.armorDisplayY.get();
         int hungerDisplayX = BetterHPConfig.CLIENT.hungerDisplayX.get();
         int hungerDisplayY = BetterHPConfig.CLIENT.hungerDisplayY.get();
-        int breatheDisplayX = BetterHPConfig.CLIENT.oxygenDisplayX.get(); // New config
-        int breatheDisplayY = BetterHPConfig.CLIENT.oxygenDisplayY.get(); // New config
+        int breatheDisplayX = BetterHPConfig.CLIENT.oxygenDisplayX.get();
+        int breatheDisplayY = BetterHPConfig.CLIENT.oxygenDisplayY.get();
 
         int centeredHealthX = (screenWidth / 2) + healthDisplayX;
         int bottomHealthY = screenHeight - healthDisplayY;
@@ -99,27 +95,30 @@ public class HealthDisplayHandler {
         int centeredHungerX = (screenWidth / 2) + hungerDisplayX;
         int bottomHungerY = screenHeight - hungerDisplayY;
 
-        int centeredBreatheX = (screenWidth / 2) + breatheDisplayX; // New oxygen positioning
-        int bottomBreatheY = screenHeight - breatheDisplayY; // New oxygen positioning
+        int centeredBreatheX = (screenWidth / 2) + breatheDisplayX;
+        int bottomBreatheY = screenHeight - breatheDisplayY;
 
         // Define numeric display texts
         String healthText = health + "/" + maxHealth;
         String absorptionText = "+" + absorption;
         String armorText = armorValue + "";
-        String hungerText = hunger + "/" + maxHunger;
-        String breatheText = (air / 20) + "/" + (maxAir / 20); // New oxygen text
+        String hungerText = hunger + "/" + 20; // Max Hunger is always 20
+        String saturationText = " +" + saturation; // Only display if saturation is more than 0
+        String breatheText = (air / 20) + "/" + (maxAir / 20);
 
         Font font = minecraft.font;
         int healthTextWidth = font.width(healthText);
         int absorptionWidth = font.width(absorptionText);
         int armorTextWidth = font.width(armorText);
         int hungerTextWidth = font.width(hungerText);
-        int breatheTextWidth = font.width(breatheText); // New oxygen text width
+        int saturationTextWidth = font.width(saturationText);
+        int breatheTextWidth = font.width(breatheText);
 
         int textColor = determineHealthColor(player);
         int absorptionColor = 0xFFFF00; // Yellow color for absorption
         int armorColor = 0xAAAAAA; // Gray color for armor text
         int hungerColor = 0xFF7518; // Pumpkin color
+        int saturationColor = 0xFFD700; // Gold color for saturation
         int breatheColor = 0x00BFFF; // DeepSkyBlue color for oxygen
         int outlineColor = 0x000000; // Black color for outline
 
@@ -139,6 +138,11 @@ public class HealthDisplayHandler {
         if (showNumericHunger) {
             drawIcon(guiGraphics, HUNGER_ICON, centeredHungerX - hungerTextWidth / 2 - 18, bottomHungerY - 4, 16, 16);
             drawOutlinedText(guiGraphics, font, hungerText, centeredHungerX - hungerTextWidth / 2, bottomHungerY, hungerColor, outlineColor);
+
+            // Display saturation only if it's greater than 0
+            if (saturation > 0) {
+                drawOutlinedText(guiGraphics, font, saturationText, centeredHungerX + hungerTextWidth / 2 + 5, bottomHungerY, saturationColor, outlineColor);
+            }
         }
 
         // Draw the breathe icon and numeric oxygen value if configured
@@ -166,21 +170,16 @@ public class HealthDisplayHandler {
     }
 
     private static void drawIcon(GuiGraphics guiGraphics, ResourceLocation icon, int x, int y, int width, int height) {
-        // Set the texture to the provided icon ResourceLocation
         RenderSystem.setShaderTexture(0, icon);
-
-        // Use the correct blit method with ResourceLocation
         guiGraphics.blit(icon, x, y, 0, 0, width, height, width, height);
     }
 
     private static void drawOutlinedText(GuiGraphics guiGraphics, Font font, String text, int x, int y, int color, int outlineColor) {
-        // Draw text outline
         guiGraphics.drawString(font, text, x - 1, y, outlineColor, false);
         guiGraphics.drawString(font, text, x + 1, y, outlineColor, false);
         guiGraphics.drawString(font, text, x, y - 1, outlineColor, false);
         guiGraphics.drawString(font, text, x, y + 1, outlineColor, false);
 
-        // Draw main text
         guiGraphics.drawString(font, text, x, y, color, false);
     }
 }
