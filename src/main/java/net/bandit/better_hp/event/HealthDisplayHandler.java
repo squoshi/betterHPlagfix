@@ -113,33 +113,33 @@ public class HealthDisplayHandler {
         int hungerColor = 0xFF7518;
         int saturationColor = 0xFFD700;
         int breatheColor = 0x00BFFF;
-        int outlineColor = 0x000000;
 
         // Draw the icons and numeric values
         if (!showVanillaArmor) {
             drawIcon(guiGraphics, ARMOR_ICON, centeredArmorX - 18, bottomArmorY - 4, 16, 16);
-            drawOutlinedText(guiGraphics, font, armorText, centeredArmorX, bottomArmorY, armorColor, outlineColor);
+            drawShadowedText(guiGraphics, font, armorText, centeredArmorX, bottomArmorY, armorColor);
         }
 
         drawIcon(guiGraphics, HEALTH_ICON, centeredHealthX - 18, bottomHealthY - 4, 16, 16);
-        drawOutlinedText(guiGraphics, font, healthText, centeredHealthX, bottomHealthY, textColor, outlineColor);
+        drawShadowedText(guiGraphics, font, healthText, centeredHealthX, bottomHealthY, textColor);
 
         if (absorptionText != null) {
-            drawOutlinedText(guiGraphics, font, absorptionText, centeredHealthX + healthText.length() * font.width(" ") + 5, bottomHealthY - 8, absorptionColor, outlineColor);
+            drawShadowedText(guiGraphics, font, absorptionText, centeredHealthX + font.width(healthText) + 5, bottomHealthY, absorptionColor);
         }
 
         if (showNumericHunger) {
-            drawOutlinedText(guiGraphics, font, hungerText, centeredHungerX - hungerText.length() * font.width(" "), bottomHungerY, hungerColor, outlineColor);
-            drawIcon(guiGraphics, HUNGER_ICON, centeredHungerX - hungerText.length() * font.width(" ") + font.width(hungerText) + 2, bottomHungerY - 4, 16, 16);
+            drawShadowedText(guiGraphics, font, hungerText, centeredHungerX - font.width(hungerText), bottomHungerY, hungerColor);
+            drawIcon(guiGraphics, HUNGER_ICON, centeredHungerX - font.width(hungerText) + font.width(hungerText) + 2, bottomHungerY - 4, 16, 16);
 
             if (saturationText != null) {
-                drawOutlinedText(guiGraphics, font, saturationText, centeredHungerX - hungerText.length() * font.width(" ") + 22, bottomHungerY - 8, saturationColor, outlineColor);
+                drawShadowedText(guiGraphics, font, saturationText, centeredHungerX - font.width(hungerText) + font.width(hungerText) + 18, bottomHungerY, saturationColor);
             }
         }
 
+
         if (showBreatheIcon && player.isUnderWater()) {
-            drawOutlinedText(guiGraphics, font, breatheText, centeredBreatheX - breatheText.length() * font.width(" "), bottomBreatheY, breatheColor, outlineColor);
-            drawIcon(guiGraphics, BREATHE_ICON, centeredBreatheX - breatheText.length() * font.width(" ") + font.width(breatheText) + 2, bottomBreatheY - 4, 16, 16);
+            drawShadowedText(guiGraphics, font, breatheText, centeredBreatheX - font.width(breatheText), bottomBreatheY, breatheColor);
+            drawIcon(guiGraphics, BREATHE_ICON, centeredBreatheX - font.width(breatheText) + font.width(breatheText) + 2, bottomBreatheY - 4, 16, 16);
         }
 
     }
@@ -163,17 +163,7 @@ public class HealthDisplayHandler {
         guiGraphics.blit(icon, x, y, 0, 0, width, height, width, height);
     }
 
-    private static void drawOutlinedText(GuiGraphics guiGraphics, Font font, String text, int x, int y, int color, int outlineColor) {
-        // Draw text outline first
-        drawTextOutline(guiGraphics, font, text, x, y, outlineColor);
-        // Draw the main text on top
-        guiGraphics.drawString(font, text, x, y, color, false);
-    }
-
-    private static void drawTextOutline(GuiGraphics guiGraphics, Font font, String text, int x, int y, int outlineColor) {
-        guiGraphics.drawString(font, text, x - 1, y, outlineColor, false);
-        guiGraphics.drawString(font, text, x + 1, y, outlineColor, false);
-        guiGraphics.drawString(font, text, x, y - 1, outlineColor, false);
-        guiGraphics.drawString(font, text, x, y + 1, outlineColor, false);
+    private static void drawShadowedText(GuiGraphics guiGraphics, Font font, String text, int x, int y, int color) {
+        guiGraphics.drawString(font, text, x, y, color, true); // Use the shadowed text option
     }
 }
