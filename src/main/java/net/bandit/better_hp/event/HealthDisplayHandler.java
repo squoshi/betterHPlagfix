@@ -54,7 +54,6 @@ public class HealthDisplayHandler {
         Player player = minecraft.player;
 
         if (player == null || minecraft.gameMode.getPlayerMode() == GameType.CREATIVE) {
-            // Skip rendering if the player is null or in Creative Mode
             return;
         }
 
@@ -70,7 +69,7 @@ public class HealthDisplayHandler {
         int absorption = (int) player.getAbsorptionAmount();
         int armorValue = player.getArmorValue();
         int hunger = player.getFoodData().getFoodLevel();
-        int saturation = (int) player.getFoodData().getSaturationLevel(); // Get saturation level
+        int saturation = (int) player.getFoodData().getSaturationLevel();
         int air = player.getAirSupply();
         int maxAir = player.getMaxAirSupply();
 
@@ -100,58 +99,49 @@ public class HealthDisplayHandler {
 
         // Define numeric display texts
         String healthText = health + "/" + maxHealth;
-        String absorptionText = "+" + absorption;
+        String absorptionText = absorption > 0 ? "+" + absorption : null;
         String armorText = armorValue + "";
-        String hungerText = hunger + "/" + 20; // Max Hunger is always 20
-        String saturationText = " +" + saturation; // Only display if saturation is more than 0
+        String hungerText = hunger + "/" + 20;
+        String saturationText = saturation > 0 ? " +" + saturation : null;
         String breatheText = (air / 20) + "/" + (maxAir / 20);
 
         Font font = minecraft.font;
-        int healthTextWidth = font.width(healthText);
-        int absorptionWidth = font.width(absorptionText);
-        int armorTextWidth = font.width(armorText);
-        int hungerTextWidth = font.width(hungerText);
-        int saturationTextWidth = font.width(saturationText);
-        int breatheTextWidth = font.width(breatheText);
 
         int textColor = determineHealthColor(player);
-        int absorptionColor = 0xFFFF00; // Yellow color for absorption
-        int armorColor = 0xAAAAAA; // Gray color for armor text
-        int hungerColor = 0xFF7518; // Pumpkin color
-        int saturationColor = 0xFFD700; // Gold color for saturation
-        int breatheColor = 0x00BFFF; // DeepSkyBlue color for oxygen
-        int outlineColor = 0x000000; // Black color for outline
+        int absorptionColor = 0xFFFF00;
+        int armorColor = 0xAAAAAA;
+        int hungerColor = 0xFF7518;
+        int saturationColor = 0xFFD700;
+        int breatheColor = 0x00BFFF;
+        int outlineColor = 0x000000;
 
         // Draw the icons and numeric values
         if (!showVanillaArmor) {
-            drawIcon(guiGraphics, ARMOR_ICON, centeredArmorX - armorTextWidth / 2 - 18, bottomArmorY - 4, 16, 16);
-            drawOutlinedText(guiGraphics, font, armorText, centeredArmorX - armorTextWidth / 2, bottomArmorY, armorColor, outlineColor);
+            drawIcon(guiGraphics, ARMOR_ICON, centeredArmorX - 18, bottomArmorY - 4, 16, 16);
+            drawOutlinedText(guiGraphics, font, armorText, centeredArmorX, bottomArmorY, armorColor, outlineColor);
         }
 
-        drawIcon(guiGraphics, HEALTH_ICON, centeredHealthX - healthTextWidth / 2 - 18, bottomHealthY - 4, 16, 16);
-        drawOutlinedText(guiGraphics, font, healthText, centeredHealthX - healthTextWidth / 2, bottomHealthY, textColor, outlineColor);
+        drawIcon(guiGraphics, HEALTH_ICON, centeredHealthX - 18, bottomHealthY - 4, 16, 16);
+        drawOutlinedText(guiGraphics, font, healthText, centeredHealthX, bottomHealthY, textColor, outlineColor);
 
-        if (absorption > 0) {
-            drawOutlinedText(guiGraphics, font, absorptionText, centeredHealthX + healthTextWidth / 2 + 5, bottomHealthY, absorptionColor, outlineColor);
+        if (absorptionText != null) {
+            drawOutlinedText(guiGraphics, font, absorptionText, centeredHealthX + healthText.length() * font.width(" ") + 5, bottomHealthY - 8, absorptionColor, outlineColor);
         }
 
         if (showNumericHunger) {
-            drawIcon(guiGraphics, HUNGER_ICON, centeredHungerX - hungerTextWidth / 2 - 18, bottomHungerY - 4, 16, 16);
-            drawOutlinedText(guiGraphics, font, hungerText, centeredHungerX - hungerTextWidth / 2, bottomHungerY, hungerColor, outlineColor);
+            drawOutlinedText(guiGraphics, font, hungerText, centeredHungerX - hungerText.length() * font.width(" "), bottomHungerY, hungerColor, outlineColor);
+            drawIcon(guiGraphics, HUNGER_ICON, centeredHungerX - hungerText.length() * font.width(" ") + font.width(hungerText) + 2, bottomHungerY - 4, 16, 16);
 
-            // Display saturation only if it's greater than 0
-            if (saturation > 0) {
-                drawOutlinedText(guiGraphics, font, saturationText, centeredHungerX + hungerTextWidth / 2 + 5, bottomHungerY, saturationColor, outlineColor);
+            if (saturationText != null) {
+                drawOutlinedText(guiGraphics, font, saturationText, centeredHungerX - hungerText.length() * font.width(" ") + 22, bottomHungerY - 8, saturationColor, outlineColor);
             }
         }
 
-        // Draw the breathe icon and numeric oxygen value if configured
         if (showBreatheIcon && player.isUnderWater()) {
-            drawIcon(guiGraphics, BREATHE_ICON, centeredBreatheX - breatheTextWidth / 2 - 18, bottomBreatheY - 4, 16, 16);
-            if (showNumericOxygen) {
-                drawOutlinedText(guiGraphics, font, breatheText, centeredBreatheX - breatheTextWidth / 2, bottomBreatheY, breatheColor, outlineColor);
-            }
+            drawOutlinedText(guiGraphics, font, breatheText, centeredBreatheX - breatheText.length() * font.width(" "), bottomBreatheY, breatheColor, outlineColor);
+            drawIcon(guiGraphics, BREATHE_ICON, centeredBreatheX - breatheText.length() * font.width(" ") + font.width(breatheText) + 2, bottomBreatheY - 4, 16, 16);
         }
+
     }
 
     private static int determineHealthColor(Player player) {
@@ -165,8 +155,7 @@ public class HealthDisplayHandler {
             return 0x00FF00; // Bright Green color for Poison effect
         }
 
-        // Default color (red) when no specific status effects
-        return 0xFF0000;
+        return 0xFF0000; // Default red color for health
     }
 
     private static void drawIcon(GuiGraphics guiGraphics, ResourceLocation icon, int x, int y, int width, int height) {
@@ -175,11 +164,16 @@ public class HealthDisplayHandler {
     }
 
     private static void drawOutlinedText(GuiGraphics guiGraphics, Font font, String text, int x, int y, int color, int outlineColor) {
+        // Draw text outline first
+        drawTextOutline(guiGraphics, font, text, x, y, outlineColor);
+        // Draw the main text on top
+        guiGraphics.drawString(font, text, x, y, color, false);
+    }
+
+    private static void drawTextOutline(GuiGraphics guiGraphics, Font font, String text, int x, int y, int outlineColor) {
         guiGraphics.drawString(font, text, x - 1, y, outlineColor, false);
         guiGraphics.drawString(font, text, x + 1, y, outlineColor, false);
         guiGraphics.drawString(font, text, x, y - 1, outlineColor, false);
         guiGraphics.drawString(font, text, x, y + 1, outlineColor, false);
-
-        guiGraphics.drawString(font, text, x, y, color, false);
     }
 }

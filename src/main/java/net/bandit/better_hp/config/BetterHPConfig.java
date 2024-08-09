@@ -63,7 +63,7 @@ public class BetterHPConfig {
 
             healthDisplayX = builder
                     .comment("Horizontal position of the health icon display")
-                    .defineInRange("healthDisplayX", -48, -1000, 1000);
+                    .defineInRange("healthDisplayX", -70, -1000, 1000);
 
             healthDisplayY = builder
                     .comment("Vertical position of the health icon display")
@@ -71,11 +71,11 @@ public class BetterHPConfig {
 
             armorDisplayX = builder
                     .comment("Horizontal position of the armor icon display")
-                    .defineInRange("armorDisplayX", 16, -1000, 1000);
+                    .defineInRange("armorDisplayX", -70, -1000, 1000);
 
             armorDisplayY = builder
                     .comment("Vertical position of the armor icon display")
-                    .defineInRange("armorDisplayY", 49, 0, 1000);
+                    .defineInRange("armorDisplayY", 60, 0, 1000);
 
             hungerDisplayX = builder
                     .comment("Horizontal position of the hunger icon display")
@@ -87,11 +87,11 @@ public class BetterHPConfig {
 
             oxygenDisplayX = builder
                     .comment("Horizontal position of the oxygen icon display")
-                    .defineInRange("oxygenDisplayX", 66, -1000, 1000); // Placed above hunger
+                    .defineInRange("oxygenDisplayX", 67, -1000, 1000); // Placed above hunger
 
             oxygenDisplayY = builder
                     .comment("Vertical position of the oxygen icon display")
-                    .defineInRange("oxygenDisplayY", 63, 0, 1000); // Adjusted position
+                    .defineInRange("oxygenDisplayY", 60, 0, 1000); // Adjusted position
 
             builder.pop();
         }
