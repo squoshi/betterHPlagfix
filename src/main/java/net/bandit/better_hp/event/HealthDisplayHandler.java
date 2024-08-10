@@ -159,11 +159,15 @@ public class HealthDisplayHandler {
     }
 
     private static void drawIcon(GuiGraphics guiGraphics, ResourceLocation icon, int x, int y, int width, int height) {
+        Minecraft.getInstance().getProfiler().push("drawIcon");
         RenderSystem.setShaderTexture(0, icon);
         guiGraphics.blit(icon, x, y, 0, 0, width, height, width, height);
+        Minecraft.getInstance().getProfiler().pop();
     }
 
     private static void drawShadowedText(GuiGraphics guiGraphics, Font font, String text, int x, int y, int color) {
+        Minecraft.getInstance().getProfiler().push("drawShadowedText");
         guiGraphics.drawString(font, text, x, y, color, true); // Use the shadowed text option
+        Minecraft.getInstance().getProfiler().pop();
     }
 }
